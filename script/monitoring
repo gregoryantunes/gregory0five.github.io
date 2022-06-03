@@ -1,0 +1,21 @@
+#!/bin/bash
+
+export PATH=$PATH:/usr/sbin:/usr/bin
+
+#	VARIABLES
+CPU_MAIN=$(sar -u 1 1 | grep "Average" | awk '{ print $4,$5,$6,$8}')
+CPU_USER=$(echo "$CPU_MAIN" | awk '{ print $1 }')
+CPU_SYS=$(echo "$CPU_MAIN" | awk '{ print $2 }')
+CPU_IOWAIT=$(echo "$CPU_MAIN" | awk '{ print $3 }')
+CPU_IDLE=$(echo "$CPU_MAIN" | awk '{ print $4 }')
+LDAVG=$(uptime | awk -F"," '{ print $3 }' | awk -F":" '{ print $2}')
+
+IP=$(ip a | grep -vE "(:|valid|host)" | awk -F/ '{print $1}' | awk '{print $2}')
+
+#	SENDER
+zabbix_sender -z "$IP" -s "host-king" -k "custom.static[cpu_user]" -o "$CPU_USER"
+zabbix_sender -z "$IP" -s "host-king" -k "custom.static[cpu_system]" -o "$CPU_SYS"
+zabbix_sender -z "$IP" -s "host-king" -k "custom.static[cpu_iowait]" -o "$CPU_IOWAIT"
+zabbix_sender -z "$IP" -s "host-king" -k "custom.static[cpu_idle]" -o "$CPU_IDLE"
+zabbix_sender -z "$IP" -s "host-king" -k "custom.static[loadavg]" -o "$LDAVG"
+
